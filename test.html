@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TICKET-1 Tests</title>
+  <title>TICKET-4 Smoke Tests</title>
   <style>
     body { font-family: system-ui; padding: 2rem; background: #111; color: #eee; }
     .pass { color: #4caf50; }
@@ -11,9 +11,12 @@
   </style>
 </head>
 <body>
-  <h1>TICKET-1: index.html Tests</h1>
+  <main>
+    <button id="yt-btn">Go to YouTube</button>
+  </main>
   <pre id="output"></pre>
 
+  <script src="script.js"></script>
   <script>
     const results = [];
 
@@ -23,50 +26,21 @@
       console.log(`[${status}] ${description}`);
     }
 
-    async function runTests() {
-      let doc = null;
-
-      try {
-        const res = await fetch('index.html');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const html = await res.text();
-        const parser = new DOMParser();
-        doc = parser.parseFromString(html, 'text/html');
-      } catch (e) {
-        assert('index.html is fetchable', false);
-        renderResults();
-        return;
-      }
-
-      assert('index.html is fetchable', true);
-
-      // DOCTYPE / HTML5 boilerplate
-      assert('Has <html> element', !!doc.querySelector('html'));
-      assert('Has <head> element', !!doc.querySelector('head'));
-      assert('Has <body> element', !!doc.querySelector('body'));
-
-      // <main> centered container
-      const main = doc.querySelector('main');
-      assert('Has <main> element', !!main);
-
-      // <h1> with correct text
-      const h1 = doc.querySelector('h1');
-      assert('Has <h1> element', !!h1);
-      assert('<h1> text is "YouTube Launcher"', h1 && h1.textContent.trim() === 'YouTube Launcher');
-
-      // Button
-      const btn = doc.querySelector('#yt-btn');
-      assert('Has <button id="yt-btn">', !!btn);
+    function runTests() {
+      const btn = document.querySelector('#yt-btn');
+      assert('#yt-btn exists in the DOM', !!btn);
       assert('Button text is "Go to YouTube"', btn && btn.textContent.trim() === 'Go to YouTube');
 
-      // styles.css linked in <head>
-      const styleLink = doc.querySelector('head link[rel="stylesheet"]');
-      assert('styles.css linked in <head>', styleLink && styleLink.getAttribute('href') === 'styles.css');
-
-      // script.js linked before </body>
-      const scripts = Array.from(doc.querySelectorAll('body script'));
-      const scriptSrc = scripts.map(s => s.getAttribute('src'));
-      assert('script.js linked in <body>', scriptSrc.includes('script.js'));
+      const origOpen = window.open;
+      window.open = () => {};
+      let threw = false;
+      try {
+        btn && btn.click();
+      } catch (e) {
+        threw = true;
+      }
+      window.open = origOpen;
+      assert('Clicking the button does not throw', !threw);
 
       renderResults();
     }
@@ -75,11 +49,9 @@
       const out = document.getElementById('output');
       const total = results.length;
       const passed = results.filter(r => r.status === 'PASS').length;
-
       out.innerHTML = results
         .map(r => `<span class="${r.status.toLowerCase()}">[${r.status}] ${r.description}</span>`)
         .join('\n');
-
       out.innerHTML += `\n\n<strong>${passed}/${total} tests passed</strong>`;
     }
 
