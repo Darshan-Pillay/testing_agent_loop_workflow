@@ -4,7 +4,8 @@
     "autoAllowBashIfSandboxed": true,
     "filesystem": {
       "allowWrite": [
-        "."
+        ".",
+        "/Users/darshanpillay/Documents/Personal/testing_agent_loop_workflow/.git"
       ],
       "denyRead": [
         "~/.ssh"
