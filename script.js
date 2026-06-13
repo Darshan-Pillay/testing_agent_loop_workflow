@@ -35,3 +35,26 @@ document.addEventListener('DOMContentLoaded', function () {
     window.applyTheme(next);
   });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  var searchInput = document.getElementById('search-input');
+  var searchButton = document.getElementById('search-button');
+  if (!searchInput || !searchButton) return;
+
+  function launchSearch() {
+    var trimmed = searchInput.value.trim();
+    if (!trimmed) return;
+    var url = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(trimmed);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  searchInput.addEventListener('input', function () {
+    searchButton.disabled = searchInput.value.trim().length === 0;
+  });
+
+  searchButton.addEventListener('click', launchSearch);
+
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') launchSearch();
+  });
+});

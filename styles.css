@@ -69,3 +69,49 @@ main {
 #theme-toggle:hover {
   background: var(--surface);
 }
+
+#search-section {
+  margin-top: 20px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+#search-input {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  outline: none;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  min-width: 240px;
+}
+
+#search-input:focus {
+  border-color: var(--accent);
+}
+
+#search-button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 16px 40px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+
+#search-button:hover:not(:disabled) {
+  background: #cc0000;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+#search-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
