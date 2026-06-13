@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TICKET-2 Tests</title>
+  <style>
+    body { font-family: system-ui; padding: 2rem; background: #111; color: #eee; }
+    .pass { color: #4caf50; }
+    .fail { color: #f44336; }
+    pre { background: #222; padding: 1rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>TICKET-2: styles.css Tests</h1>
+  <pre id="output"></pre>
+
+  <script>
+    const results = [];
+
+    function assert(description, condition) {
+      const status = condition ? 'PASS' : 'FAIL';
+      results.push({ description, status });
+      console.log(`[${status}] ${description}`);
+    }
+
+    async function parseCss() {
+      const res = await fetch('styles.css');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    }
+
+    function extractBlock(css, selector) {
+      const escaped = selector.replace(/[#.[\]()]/g, c => `\\${c}`);
+      const re = new RegExp(escaped + '\\s*\\{([^}]*)\\}', 'i');
+      const m = css.match(re);
+      return m ? m[1] : '';
+    }
+
+    function hasProp(block, prop, value) {
+      const re = new RegExp(prop + '\\s*:\\s*' + value.replace(/[()]/g, c => `\\${c}`), 'i');
+      return re.test(block);
+    }
+
+    async function runTests() {
+      let css = '';
+
+      try {
+        css = await parseCss();
+      } catch (e) {
+        assert('styles.css is fetchable', false);
+        renderResults();
+        return;
+      }
+
+      assert('styles.css is fetchable', true);
+
+      // body rules
+      const body = extractBlock(css, 'body');
+      assert('body: background is #0f0f0f', hasProp(body, 'background', '#0f0f0f'));
+      assert('body: color is #fff', hasProp(body, 'color', '#fff'));
+      assert('body: font-family includes system-ui', /font-family\s*:.*system-ui/i.test(body));
+      assert('body: margin is 0', hasProp(body, 'margin', '0'));
+      assert('body: display is flex', hasProp(body, 'display', 'flex'));
+      assert('body: min-height or height is 100vh', /(?:min-height|height)\s*:\s*100vh/i.test(body));
+      assert('body: justify-content centers horizontally', /justify-content\s*:\s*center/i.test(body));
+      assert('body: align-items centers vertically', /align-items\s*:\s*center/i.test(body));
+
+      // main rules
+      const main = extractBlock(css, 'main');
+      assert('main: text-align is center', hasProp(main, 'text-align', 'center'));
+
+      // #yt-btn rules
+      const btn = extractBlock(css, '#yt-btn');
+      assert('#yt-btn: background is #FF0000', hasProp(btn, 'background', '#[Ff][Ff]0000'));
+      assert('#yt-btn: color is #fff', hasProp(btn, 'color', '#fff'));
+      assert('#yt-btn: border is none', hasProp(btn, 'border', 'none'));
+      assert('#yt-btn: padding is 16px 40px', hasProp(btn, 'padding', '16px 40px'));
+      assert('#yt-btn: font-size is 1.2rem', hasProp(btn, 'font-size', '1\\.2rem'));
+      assert('#yt-btn: border-radius is 8px', hasProp(btn, 'border-radius', '8px'));
+      assert('#yt-btn: cursor is pointer', hasProp(btn, 'cursor', 'pointer'));
+
+      // #yt-btn:hover rules
+      const hover = extractBlock(css, '#yt-btn:hover');
+      assert('#yt-btn:hover: background is #cc0000', hasProp(hover, 'background', '#[Cc][Cc]0000'));
+      assert('#yt-btn:hover: transform scale(1.05)', /transform\s*:.*scale\(1\.05\)/i.test(hover));
+      assert('#yt-btn:hover: transition defined', /transition\s*:/i.test(hover));
+
+      renderResults();
+    }
+
+    function renderResults() {
+      const out = document.getElementById('output');
+      const total = results.length;
+      const passed = results.filter(r => r.status === 'PASS').length;
+
+      out.innerHTML = results
+        .map(r => `<span class="${r.status.toLowerCase()}">[${r.status}] ${r.description}</span>`)
+        .join('\n');
+
+      out.innerHTML += `\n\n<strong>${passed}/${total} tests passed</strong>`;
+    }
+
+    runTests();
+  </script>
+</body>
+</html>
