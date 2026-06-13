@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TICKET-3 Tests</title>
+  <style>
+    body { font-family: system-ui; padding: 2rem; background: #111; color: #eee; }
+    .pass { color: #4caf50; }
+    .fail { color: #f44336; }
+    pre { background: #222; padding: 1rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>TICKET-3: script.js Tests</h1>
+  <pre id="output"></pre>
+
+  <script>
+    const results = [];
+
+    function assert(description, condition) {
+      const status = condition ? 'PASS' : 'FAIL';
+      results.push({ description, status });
+      console.log(`[${status}] ${description}`);
+    }
+
+    async function fetchScript() {
+      const res = await fetch('script.js');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.text();
+    }
+
+    async function runTests() {
+      let src = '';
+
+      try {
+        src = await fetchScript();
+      } catch (e) {
+        assert('script.js is fetchable', false);
+        renderResults();
+        return;
+      }
+
+      assert('script.js is fetchable', true);
+      assert('Listens for DOMContentLoaded', /DOMContentLoaded/i.test(src));
+      assert('Selects #yt-btn', /#yt-btn/.test(src));
+      assert('Attaches click event listener', /addEventListener\s*\(\s*['"]click['"]/i.test(src));
+      assert('Calls window.open', /window\.open/.test(src));
+      assert('Opens https://www.youtube.com', /https:\/\/www\.youtube\.com/.test(src));
+      assert('Opens in _blank tab', /'_blank'|"_blank"/.test(src));
+      assert('Uses noopener,noreferrer', /noopener,noreferrer/.test(src));
+
+      // Runtime: clicking #yt-btn does not throw
+      const btn = document.createElement('button');
+      btn.id = 'yt-btn';
+      document.body.appendChild(btn);
+
+      const origOpen = window.open;
+      let openCalled = false;
+      let openArgs = null;
+      window.open = (...args) => { openCalled = true; openArgs = args; };
+
+      let threw = false;
+      try {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'script.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+        btn.click();
+      } catch (e) {
+        threw = true;
+      }
+
+      window.open = origOpen;
+      document.body.removeChild(btn);
+
+      assert('Clicking #yt-btn does not throw', !threw);
+      assert('window.open called on click', openCalled);
+      assert('window.open first arg is YouTube URL', openArgs && openArgs[0] === 'https://www.youtube.com');
+      assert('window.open second arg is _blank', openArgs && openArgs[1] === '_blank');
+
+      renderResults();
+    }
+
+    function renderResults() {
+      const out = document.getElementById('output');
+      const total = results.length;
+      const passed = results.filter(r => r.status === 'PASS').length;
+      out.innerHTML = results
+        .map(r => `<span class="${r.status.toLowerCase()}">[${r.status}] ${r.description}</span>`)
+        .join('\n');
+      out.innerHTML += `\n\n<strong>${passed}/${total} tests passed</strong>`;
+    }
+
+    runTests();
+  </script>
+</body>
+</html>
