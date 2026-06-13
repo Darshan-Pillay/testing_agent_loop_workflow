@@ -1,12 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YouTube Launcher</title>
+  <script>
+    (function () {
+      var stored = localStorage.getItem('yt-launcher-theme');
+      var resolved = stored !== null
+        ? stored
+        : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', resolved);
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <button id="theme-toggle" aria-label="Toggle theme" aria-pressed="false" type="button">
+    <span id="theme-toggle-icon" aria-hidden="true"></span>
+  </button>
   <main>
     <h1>YouTube Launcher</h1>
     <button id="yt-btn">Go to YouTube</button>
