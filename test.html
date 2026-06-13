@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TICKET-1 Tests</title>
+  <style>
+    body { font-family: system-ui; padding: 2rem; background: #111; color: #eee; }
+    .pass { color: #4caf50; }
+    .fail { color: #f44336; }
+    pre { background: #222; padding: 1rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>TICKET-1: index.html Tests</h1>
+  <pre id="output"></pre>
+
+  <script>
+    const results = [];
+
+    function assert(description, condition) {
+      const status = condition ? 'PASS' : 'FAIL';
+      results.push({ description, status });
+      console.log(`[${status}] ${description}`);
+    }
+
+    async function runTests() {
+      let doc = null;
+
+      try {
+        const res = await fetch('index.html');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const html = await res.text();
+        const parser = new DOMParser();
+        doc = parser.parseFromString(html, 'text/html');
+      } catch (e) {
+        assert('index.html is fetchable', false);
+        renderResults();
+        return;
+      }
+
+      assert('index.html is fetchable', true);
+
+      // DOCTYPE / HTML5 boilerplate
+      assert('Has <html> element', !!doc.querySelector('html'));
+      assert('Has <head> element', !!doc.querySelector('head'));
+      assert('Has <body> element', !!doc.querySelector('body'));
+
+      // <main> centered container
+      const main = doc.querySelector('main');
+      assert('Has <main> element', !!main);
+
+      // <h1> with correct text
+      const h1 = doc.querySelector('h1');
+      assert('Has <h1> element', !!h1);
+      assert('<h1> text is "YouTube Launcher"', h1 && h1.textContent.trim() === 'YouTube Launcher');
+
+      // Button
+      const btn = doc.querySelector('#yt-btn');
+      assert('Has <button id="yt-btn">', !!btn);
+      assert('Button text is "Go to YouTube"', btn && btn.textContent.trim() === 'Go to YouTube');
+
+      // styles.css linked in <head>
+      const styleLink = doc.querySelector('head link[rel="stylesheet"]');
+      assert('styles.css linked in <head>', styleLink && styleLink.getAttribute('href') === 'styles.css');
+
+      // script.js linked before </body>
+      const scripts = Array.from(doc.querySelectorAll('body script'));
+      const scriptSrc = scripts.map(s => s.getAttribute('src'));
+      assert('script.js linked in <body>', scriptSrc.includes('script.js'));
+
+      renderResults();
+    }
+
+    function renderResults() {
+      const out = document.getElementById('output');
+      const total = results.length;
+      const passed = results.filter(r => r.status === 'PASS').length;
+
+      out.innerHTML = results
+        .map(r => `<span class="${r.status.toLowerCase()}">[${r.status}] ${r.description}</span>`)
+        .join('\n');
+
+      out.innerHTML += `\n\n<strong>${passed}/${total} tests passed</strong>`;
+    }
+
+    runTests();
+  </script>
+</body>
+</html>
