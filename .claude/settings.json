@@ -1,7 +1,25 @@
 {
   "sandbox": {
     "enabled": true,
-    "autoAllowBashIfSandboxed": true
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": {
+      "allowWrite": [
+        "."
+      ],
+      "denyRead": [
+        "~/.ssh"
+      ],
+      "denyWrite": [
+        "~",
+        "/"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com"
+      ]
+    }
   },
   "permissions": {
     "allow": [
