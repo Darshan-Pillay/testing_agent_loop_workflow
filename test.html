@@ -17,6 +17,10 @@
   </button>
   <main>
     <button id="yt-btn">Go to YouTube</button>
+    <section id="search-section">
+      <input type="text" id="search-input" placeholder="Search YouTube..." autocomplete="off" />
+      <button type="button" id="search-button" disabled>Search YouTube</button>
+    </section>
   </main>
   <pre id="output"></pre>
 
@@ -99,6 +103,56 @@
       // Cleanup
       document.documentElement.setAttribute('data-theme', 'dark');
       localStorage.removeItem('yt-launcher-theme');
+
+      // --- Search Launcher smoke tests ---
+
+      const searchInput = document.getElementById('search-input');
+      const searchButton = document.getElementById('search-button');
+
+      assert('Search button is disabled on load (empty input)', !!searchButton && searchButton.disabled === true);
+
+      if (searchInput) {
+        searchInput.value = '   ';
+        searchInput.dispatchEvent(new Event('input'));
+        assert('Search button stays disabled for whitespace-only input', searchButton.disabled === true);
+
+        searchInput.value = 'cats';
+        searchInput.dispatchEvent(new Event('input'));
+        assert('Search button enables when non-whitespace text is entered', searchButton.disabled === false);
+
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+        assert('Search button disables again when input is cleared', searchButton.disabled === true);
+      } else {
+        assert('Search button stays disabled for whitespace-only input', false);
+        assert('Search button enables when non-whitespace text is entered', false);
+        assert('Search button disables again when input is cleared', false);
+      }
+
+      var openCalls = [];
+      var origOpenSearch = window.open;
+      window.open = function (url, target, features) {
+        openCalls.push({ url, target, features });
+      };
+      try {
+        if (searchInput) {
+          searchInput.value = 'hello world';
+          searchInput.dispatchEvent(new Event('input'));
+          searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+          assert('Enter key opens correct YouTube search URL',
+            openCalls.length === 1 &&
+            openCalls[0].url === 'https://www.youtube.com/results?search_query=hello%20world' &&
+            openCalls[0].target === '_blank' &&
+            openCalls[0].features === 'noopener,noreferrer'
+          );
+          assert('Input value is retained after search', searchInput.value === 'hello world');
+        } else {
+          assert('Enter key opens correct YouTube search URL', false);
+          assert('Input value is retained after search', false);
+        }
+      } finally {
+        window.open = origOpenSearch;
+      }
 
       renderResults();
     }
