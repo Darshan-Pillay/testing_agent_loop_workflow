@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <title>TICKET-4 Smoke Tests</title>
+  <link rel="stylesheet" href="styles.css">
   <style>
-    body { font-family: system-ui; padding: 2rem; background: #111; color: #eee; }
+    body { font-family: system-ui; padding: 2rem; }
     .pass { color: #4caf50; }
     .fail { color: #f44336; }
-    pre { background: #222; padding: 1rem; border-radius: 4px; }
+    pre { background: #222; color: #eee; padding: 1rem; border-radius: 4px; }
   </style>
 </head>
 <body>
+  <button id="theme-toggle" aria-label="Toggle theme" aria-pressed="false" type="button">
+    <span id="theme-toggle-icon" aria-hidden="true"></span>
+  </button>
   <main>
     <button id="yt-btn">Go to YouTube</button>
   </main>
@@ -41,6 +45,60 @@
       }
       window.open = origOpen;
       assert('Clicking the button does not throw', !threw);
+
+      // --- Theme toggle smoke tests ---
+
+      // 1. Default theme present
+      const initialTheme = document.documentElement.getAttribute('data-theme');
+      assert('Default theme is "dark" or "light" after load (not null)', initialTheme === 'dark' || initialTheme === 'light');
+
+      // 2. Toggle button exists
+      const toggleBtn = document.querySelector('#theme-toggle');
+      assert('#theme-toggle is a button with aria-label="Toggle theme"',
+        !!toggleBtn &&
+        toggleBtn.tagName.toLowerCase() === 'button' &&
+        toggleBtn.getAttribute('aria-label') === 'Toggle theme'
+      );
+
+      // 3. Toggle flips attribute
+      const themeBefore = document.documentElement.getAttribute('data-theme');
+      const expectedAfterToggle = themeBefore === 'dark' ? 'light' : 'dark';
+      toggleBtn && toggleBtn.click();
+      const themeAfterToggle = document.documentElement.getAttribute('data-theme');
+      assert('Clicking #theme-toggle flips data-theme to opposite value', themeAfterToggle === expectedAfterToggle);
+
+      // 4. Persistence
+      assert('After toggle, localStorage has the new theme',
+        localStorage.getItem('yt-launcher-theme') === themeAfterToggle
+      );
+
+      // 5. applyTheme helper
+      if (typeof window.applyTheme === 'function') {
+        window.applyTheme('light');
+        const afterApplyLight = document.documentElement.getAttribute('data-theme');
+        const lsAfterApplyLight = localStorage.getItem('yt-launcher-theme');
+        assert('window.applyTheme("light") sets data-theme to "light"', afterApplyLight === 'light');
+        assert('window.applyTheme("light") updates localStorage to "light"', lsAfterApplyLight === 'light');
+        window.applyTheme('dark');
+        assert('window.applyTheme("dark") restores data-theme to "dark"',
+          document.documentElement.getAttribute('data-theme') === 'dark'
+        );
+      } else {
+        assert('window.applyTheme exists as a function', false);
+        assert('window.applyTheme("light") sets data-theme to "light"', false);
+        assert('window.applyTheme("dark") restores data-theme to "dark"', false);
+      }
+
+      // 6. CSS variable resolves differently between themes
+      window.applyTheme('dark');
+      const darkBg = getComputedStyle(document.body).backgroundColor;
+      window.applyTheme('light');
+      const lightBg = getComputedStyle(document.body).backgroundColor;
+      assert('CSS background-color differs between dark and light themes', darkBg !== lightBg);
+
+      // Cleanup
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.removeItem('yt-launcher-theme');
 
       renderResults();
     }
