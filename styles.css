@@ -1,30 +1,71 @@
+:root {
+  --bg: #0f0f0f;
+  --fg: #ffffff;
+  --surface: #1f1f1f;
+  --border: #272727;
+  --accent: #FF0000;
+}
+
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #0f0f0f;
+  --surface: #f9f9f9;
+  --border: #e5e5e5;
+  --accent: #FF0000;
+}
+
 body {
-  background: #0f0f0f;
-  color: #fff;
+  background: var(--bg);
+  color: var(--fg);
   font-family: system-ui, sans-serif;
   margin: 0;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 main {
   text-align: center;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 #yt-btn {
-  background: #FF0000;
+  background: var(--accent);
   color: #fff;
   border: none;
   padding: 16px 40px;
   font-size: 1.2rem;
   border-radius: 8px;
   cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 #yt-btn:hover {
   background: #cc0000;
   transform: scale(1.05);
   transition: all 0.2s ease;
+}
+
+#theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+#theme-toggle:hover {
+  background: var(--surface);
 }
