@@ -1,0 +1,30 @@
+body {
+  background: #0f0f0f;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main {
+  text-align: center;
+}
+
+#yt-btn {
+  background: #FF0000;
+  color: #fff;
+  border: none;
+  padding: 16px 40px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#yt-btn:hover {
+  background: #cc0000;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
